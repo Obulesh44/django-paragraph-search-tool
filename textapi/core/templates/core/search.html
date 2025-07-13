@@ -1,0 +1,63 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Search{% endblock %}
+
+{% block content %}
+<!-- Page Title -->
+<h1 class="title">Search for a Word</h1>
+
+<!-- Search Form -->
+<form id="search-form" class="styled-form">
+   {% csrf_token %}
+  <input type="text" id="word" name="word" placeholder="Enter word to search" required>
+  <button type="submit">Search</button>
+</form>
+
+<div id="results"></div>
+
+<!-- JavaScript to perform the search using the API -->
+<script>
+document.getElementById("search-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("❌ Please login first!");
+    window.location.href = "/login/";
+    return;
+  }
+
+  // Get the word to search, trim and normalize it
+  const word = document.getElementById("word").value.trim().toLowerCase();
+  if (!word) {
+    alert("⚠️ Please enter a word to search.");
+    return;
+  }
+
+  // Send GET request to search API with token auth
+  const res = await fetch("/api/search/?word=" + encodeURIComponent(word), {
+    method: "GET",
+    headers: {
+      "Authorization": "Token " + token
+    }
+  });
+
+  const json = await res.json();
+  const resultDiv = document.getElementById("results");
+  resultDiv.innerHTML = "";  // clear previous results
+
+  if (res.ok && json.paragraphs && json.paragraphs.length > 0) {
+    resultDiv.innerHTML = "<h3 style='color:#222; text-align:left;'>Top Results:</h3>";
+    json.paragraphs.forEach((p, index) => {
+      const para = document.createElement("p");
+      para.innerHTML = `<span style="color: #333; text-align:left;"><strong>#${index + 1}: ${p}</span>`;
+      resultDiv.appendChild(para);
+    });
+  } else {
+    resultDiv.innerHTML = "<p style='color:red;'>No matching paragraphs found.</p>";
+
+  }
+});
+</script>
+{% endblock %}

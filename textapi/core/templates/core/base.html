@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Text Search{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'core/style.css' %}">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .container {
+      margin-top: 10px;
+    }
+    h2.welcome {
+      margin-top: 100px;
+      font-size: 28px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <nav class="main-nav">
+    <div class="nav-container">
+      <div class="nav-left">
+        <!-- Optional logo-->
+      </div>
+      <div class="nav-right">
+        {% if user_name %}
+          <!-- When user is logged in -->
+          <span class="user-greeting">👋 Hi {{ user_name }}</span>
+          <a href="{% url 'upload' %}">Upload</a>
+          <a href="{% url 'search' %}">Search</a>
+          <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+          <!-- When user is not logged in -->
+          <a href="{% url 'register' %}">Register</a>
+          <a href="{% url 'login' %}">Login</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <div class="welcome-container">
+    {% if request.path == '/' %}
+      <!-- Homepage welcome message -->
+      <h1 class="hero-title">Welcome to Project</h1>
+      <p class="hero-subtitle">Django-Powered Paragraph Upload and Search Tool 🔍</p>
+    {% endif %}
+
+    <!-- Page-specific content -->
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

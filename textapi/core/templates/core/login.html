@@ -1,0 +1,65 @@
+
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<!-- App Heading -->
+<h1 class="wel">Django-Powered Paragraph Upload and Search Tool🔍</h1>
+
+<!-- Page Title -->
+<h1 class="title">Login</h1>
+
+<!-- Login Form -->
+<form id="login-form" class="styled-form">
+   {% csrf_token %}
+  <input type="email" name="email" placeholder="Email" required>
+  <input type="password" name="password" placeholder="Password" required>
+  <div id="error-message" style="color: red; margin-bottom: 10px;"></div>
+
+  <button type="submit">Login</button>
+</form>
+
+<!-- JavaScript to handle login via fetch to /api/login/ -->
+<script>
+// Utility to extract CSRF token from browser cookies
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Submit handler for the login form
+document.getElementById("login-form").addEventListener("submit", async (e) => {   // Convert form to object
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  const csrftoken = getCookie('csrftoken');   // Get CSRF token for POST request
+
+  // Send POST request to API login endpoint
+  const res = await fetch('/api/login/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json',
+               'X-CSRFToken': csrftoken
+   },
+    body: JSON.stringify(data)
+  });
+  const json = await res.json();
+  const errorDiv = document.getElementById("error-message");
+
+  if (json.token) {
+    localStorage.setItem("token", json.token);
+    window.location.href = "/upload";
+  } else {
+    errorDiv.innerText = json.error || "Login failed. Please check your credentials.";
+  }
+});
+</script>
+{% endblock %}

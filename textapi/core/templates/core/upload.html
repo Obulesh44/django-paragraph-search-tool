@@ -1,0 +1,91 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Upload{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<h1 class="title">Upload Paragraphs</h1>
+
+<!-- Upload Form -->
+<form id="upload-form" class="styled-form">
+  {% csrf_token %}
+  <textarea name="text" id="text" rows="10" placeholder="Write paragraphs here (use 2 newlines to separate)"></textarea><br><br>
+  <button type="submit">Upload</button>
+</form>
+
+<!--  Message area -->
+<div id="upload-message" style="margin-top: 15px; font-weight: bold;"></div>
+
+<!-- JavaScript to handle upload logic -->
+<script>
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+//  Handle form submission
+document.getElementById("upload-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const messageDiv = document.getElementById("upload-message");
+  messageDiv.innerText = "";
+  messageDiv.style.color = "white";
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    messageDiv.style.color = "orange";
+    messageDiv.innerText = "❌ Please login first!";
+    return;
+  }
+
+  const text = document.getElementById("text").value;
+  if (!text.trim()) {
+    messageDiv.style.color = "red";
+    messageDiv.innerText = "⚠️ Please enter some paragraphs.";
+    return;
+  }
+
+  try {
+    const csrftoken = getCookie('csrftoken');
+
+    // 🔁 POST request to upload paragraphs
+    const res = await fetch("/api/upload/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Token " + token,
+        "X-CSRFToken": csrftoken
+      },
+      body: JSON.stringify({ text })
+    });
+
+    const json = await res.json();
+
+    if (res.ok) {
+      messageDiv.style.color = "lightgreen";
+      messageDiv.innerText = "✅ Paragraphs uploaded successfully! Redirecting...";
+      setTimeout(() => {
+        window.location.href = "/search/";
+      }, 1500);
+    } else {
+      messageDiv.style.color = "red";
+      messageDiv.innerText = "❌ Upload failed: " + (json.detail || "Unknown error");
+    }
+  } catch (error) {
+    messageDiv.style.color = "red";
+    messageDiv.innerText = "❌ Request error: " + error.message;
+  }
+});
+</script>
+{% endblock %}
